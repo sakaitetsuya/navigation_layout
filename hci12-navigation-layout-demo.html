@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCI 第12回 ナビゲーション&レイアウト 体験サイト</title>
+<style>
+  /* ========== Design Tokens ========== */
+  :root {
+    --primary: #1e3a5f;
+    --primary-light: #2d5a8c;
+    --accent: #06b6d4;
+    --accent-warm: #f59e0b;
+    --danger: #ef4444;
+    --success: #10b981;
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-alt: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --text-light: #94a3b8;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,0.05);
+    --shadow: 0 4px 12px rgba(15,23,42,0.08);
+    --shadow-lg: 0 12px 32px rgba(15,23,42,0.12);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --header-h: 64px;
+    --header-h-collapsed: 36px;
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ========== Header (sticky, collapsible) ========== */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--primary);
+    color: white;
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    box-shadow: var(--shadow);
+    transition: height var(--transition), padding var(--transition);
+  }
+  .site-header.collapsed {
+    height: var(--header-h-collapsed);
+  }
+  .site-header.collapsed .header-title,
+  .site-header.collapsed .header-sub {
+    font-size: 0.85rem;
+  }
+  .site-header.collapsed .header-sub {
+    display: none;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+  }
+  .header-logo {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+  .site-header.collapsed .header-logo {
+    width: 22px;
+    height: 22px;
+    font-size: 0.7rem;
+  }
+  .header-title {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .header-sub {
+    font-size: 0.78rem;
+    opacity: 0.7;
+  }
+  .header-nav {
+    display: flex;
+    gap: 4px;
+  }
+  .header-nav a {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    transition: background 0.2s;
+  }
+  .header-nav a:hover {
+    background: rgba(255,255,255,0.15);
+  }
+  .header-nav a.active {
+    background: var(--accent);
+    color: var(--primary);
+    font-weight: 600;
+  }
+
+  /* ========== Layout ========== */
+  .layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* ========== Hero ========== */
+  .hero {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 48px 32px;
+    border-radius: 16px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    right: -100px;
+    top: -100px;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: 0.3;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    margin-bottom: 16px;
+    letter-spacing: 0.05em;
+  }
+  .hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .hero p {
+    font-size: 1rem;
+    opacity: 0.9;
+    max-width: 640px;
+  }
+
+  /* ========== Section ========== */
+  .section {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 32px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    scroll-margin-top: 80px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-number {
+    width: 36px;
+    height: 36px;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+  .section-desc {
+    color: var(--text-muted);
+    margin: 12px 0 24px;
+    font-size: 0.92rem;
+  }
+
+  /* ========== Breadcrumb ========== */
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--surface-alt);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .breadcrumb a {
+    color: var(--primary-light);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .breadcrumb a:hover { text-decoration: underline; }
+  .breadcrumb .sep {
+    color: var(--text-light);
+  }
+  .breadcrumb .current {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ========== Demo 1: 評価の淵 ========== */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 768px) {
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+  .demo-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .demo-card-header {
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .demo-card-header.bad {
+    background: #fef2f2;
+    color: var(--danger);
+    border-bottom: 1px solid #fecaca;
+  }
+  .demo-card-header.good {
+    background: #f0fdf4;
+    color: var(--success);
+    border-bottom: 1px solid #bbf7d0;
+  }
+  .demo-card-body {
+    padding: 16px;
+    min-height: 280px;
+    background: var(--surface-alt);
+  }
+  .phone-frame {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 0.85rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .phone-title {
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .menu-list {
+    list-style: none;
+  }
+  .menu-item {
+    padding: 10px 12px;
+    background: var(--surface-alt);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+  }
+  .menu-item:hover {
+    background: #e0f2fe;
+    transform: translateX(2px);
+  }
+  .menu-item.active {
+    background: var(--primary);
+    color: white;
+    font-weight: 600;
+  }
+  .menu-item .chev {
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+  .menu-item.active .chev {
+    color: rgba(255,255,255,0.7);
+  }
+  .back-btn {
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    color: var(--text-muted);
+  }
+  .back-btn:hover {
+    background: #fef3c7;
+    color: var(--accent-warm);
+  }
+  .depth-indicator {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--surface-alt);
+    border-radius: 100px;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-left: 8px;
+  }
+
+  /* ========== Demo 2: ヘッダ格納 ========== */
+  .header-demo-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .toggle-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .toggle-btn:hover {
+    border-color: var(--accent);
+  }
+  .toggle-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .scroll-demo {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    height: 360px;
+    overflow-y: scroll;
+    background: var(--bg);
+    position: relative;
+  }
+  .scroll-demo-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--primary);
+    color: white;
+    padding: 14px 16px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s;
+  }
+  .scroll-demo-header.hidden {
+    transform: translateY(-100%);
+  }
+  .scroll-demo-header.collapsed {
+    height: 30px;
+    padding: 4px 16px;
+    font-size: 0.78rem;
+  }
+  .scroll-demo-content {
+    padding: 20px;
+  }
+  .scroll-demo-content p {
+    margin-bottom: 16px;
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+  .scroll-demo-content .block {
+    background: var(--surface);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* ========== Demo 3: カラム ========== */
+  .column-switcher {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .column-demo {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-alt);
+    padding: 12px;
+    min-height: 280px;
+  }
+  .col-row {
+    display: grid;
+    gap: 10px;
+    height: 100%;
+  }
+  .col-row.cols-1 { grid-template-columns: 1fr; }
+  .col-row.cols-2 { grid-template-columns: 1fr 2fr; }
+  .col-row.cols-3 { grid-template-columns: 1fr 2.2fr 1fr; }
+  @media (max-width: 640px) {
+    .col-row.cols-2, .col-row.cols-3 { grid-template-columns: 1fr; }
+  }
+  .col-block {
+    background: white;
+    border-radius: 8px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .col-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-light);
+    font-weight: 700;
+  }
+  .col-main { background: linear-gradient(180deg, #eff6ff 0%, white 100%); }
+  .col-side { background: var(--surface-alt); }
+  .skeleton-line {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+  }
+  .skeleton-line.short { width: 60%; }
+  .skeleton-line.tall { height: 60px; background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+
+  /* ========== Demo 4: オーバーレイ・インレイ・アコーディオン ========== */
+  .ctx-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 768px) { .ctx-grid { grid-template-columns: 1fr; } }
+  .ctx-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .ctx-card h4 {
+    color: var(--primary);
+    margin-bottom: 8px;
+    font-size: 1rem;
+  }
+  .ctx-card p {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    min-height: 56px;
+  }
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: background 0.2s;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: var(--primary-light); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    font-family: inherit;
+  }
+  .btn-ghost:hover { background: var(--primary); color: white; }
+
+  /* Overlay */
+  .overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 20px;
+    animation: fadeIn 0.2s;
+  }
+  .overlay-backdrop.show { display: flex; }
+  .overlay-panel {
+    background: white;
+    border-radius: 14px;
+    padding: 28px;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.25s;
+  }
+  .overlay-panel h3 {
+    color: var(--primary);
+    margin-bottom: 8px;
+    font-size: 1.2rem;
+  }
+  .overlay-panel p {
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    font-size: 0.92rem;
+  }
+  .overlay-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Inlay */
+  .inlay-panel {
+    margin-top: 16px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease;
+    border-radius: 10px;
+  }
+  .inlay-panel.open {
+    max-height: 400px;
+  }
+  .inlay-inner {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #fcd34d;
+  }
+  .inlay-inner h4 {
+    color: #92400e;
+    margin-bottom: 8px;
+  }
+  .inlay-inner p {
+    color: #78350f;
+    font-size: 0.85rem;
+    min-height: auto;
+  }
+
+  /* Accordion */
+  .accordion {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 16px;
+  }
+  .acc-item { border-bottom: 1px solid var(--border); }
+  .acc-item:last-child { border-bottom: none; }
+  .acc-trigger {
+    width: 100%;
+    background: var(--surface);
+    border: none;
+    padding: 14px 18px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--primary);
+    transition: background 0.15s;
+  }
+  .acc-trigger:hover { background: var(--surface-alt); }
+  .acc-trigger .acc-icon {
+    transition: transform 0.25s;
+    color: var(--accent);
+  }
+  .acc-trigger.open .acc-icon {
+    transform: rotate(180deg);
+  }
+  .acc-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .acc-content.open {
+    max-height: 220px;
+  }
+  .acc-inner {
+    padding: 0 18px 16px;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  /* ========== Demo 5: スクロール vs ページング vs カルーセル ========== */
+  .display-switcher {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .display-area {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    background: var(--surface-alt);
+    min-height: 300px;
+  }
+  .item-card {
+    background: white;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .item-thumb {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    border-radius: 6px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+  .item-info { flex: 1; }
+  .item-title { font-weight: 600; font-size: 0.9rem; }
+  .item-meta { font-size: 0.78rem; color: var(--text-muted); }
+
+  /* Scroll variant */
+  .scroll-list {
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 16px;
+  }
+  .page-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .page-btn:hover { border-color: var(--accent); }
+  .page-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .page-info {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    margin-top: 12px;
+  }
+
+  /* Carousel */
+  .carousel {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+  }
+  .carousel-card {
+    flex: 0 0 200px;
+    height: 230px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    border-radius: 12px;
+    color: white;
+    padding: 20px;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+  }
+  .carousel-card:nth-child(2n) { background: linear-gradient(135deg, var(--accent-warm) 0%, var(--danger) 100%); }
+  .carousel-card:nth-child(3n) { background: linear-gradient(135deg, var(--success) 0%, var(--accent) 100%); }
+  .carousel-card h4 { font-size: 1.1rem; }
+  .carousel-card .num {
+    font-size: 2rem;
+    font-weight: 800;
+    opacity: 0.4;
+  }
+  .carousel-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .carousel-dots .dot {
+    width: 8px;
+    height: 8px;
+    background: var(--border);
+    border-radius: 50%;
+  }
+  .carousel-dots .dot.active { background: var(--primary); width: 24px; border-radius: 100px; }
+
+  /* ========== Footer ========== */
+  .site-footer {
+    background: var(--primary);
+    color: white;
+    padding: 40px 24px 24px;
+    margin-top: 40px;
+  }
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 32px;
+  }
+  @media (max-width: 768px) {
+    .footer-inner { grid-template-columns: 1fr 1fr; }
+  }
+  .footer-col h5 {
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .footer-col ul {
+    list-style: none;
+  }
+  .footer-col li {
+    margin-bottom: 8px;
+  }
+  .footer-col a {
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .footer-col a:hover { color: white; }
+  .footer-brand p {
+    font-size: 0.82rem;
+    opacity: 0.7;
+    line-height: 1.7;
+  }
+  .footer-bottom {
+    max-width: 1200px;
+    margin: 32px auto 0;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.78rem;
+    opacity: 0.6;
+    text-align: center;
+  }
+
+  /* ========== Hint Box ========== */
+  .hint {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-left: 4px solid var(--accent-warm);
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #78350f;
+    margin-top: 16px;
+  }
+  .hint strong { color: #92400e; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--primary);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 100px;
+    box-shadow: var(--shadow-lg);
+    font-size: 0.88rem;
+    z-index: 300;
+    transition: transform 0.3s;
+  }
+  .toast.show {
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== HEADER (sticky / collapsible) ========== -->
+<header class="site-header" id="siteHeader">
+  <div class="header-brand">
+    <div class="header-logo">12</div>
+    <div>
+      <div class="header-title">HCI Lab Demo</div>
+      <div class="header-sub">第12回 ナビゲーション&レイアウト</div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <a href="#hero" class="active">ホーム</a>
+    <a href="#demo1">体験</a>
+    <a href="#demo3">レイアウト</a>
+  </nav>
+</header>
+
+<main class="layout">
+
+  <!-- ========== HERO ========== -->
+  <section class="hero" id="hero">
+    <span class="hero-tag">SESSION 12 · DEMO</span>
+    <h1>ナビゲーション&レイアウトを<br>「触って」理解する</h1>
+    <p>第12回で学んだ概念を体験できるデモサイトです。評価の淵・ヘッダ格納・カラムレイアウト・オーバーレイ/インレイ・スクロール/ページングを実際に操作して、設計判断の違いを体感してください。</p>
+  </section>
+
+  <!-- ========== DEMO 1: 評価の淵 vs パンくず ========== -->
+  <section class="section" id="demo1">
+    <div class="section-header">
+      <div class="section-number">01</div>
+      <div class="section-title">評価の淵 vs パンくずリスト</div>
+    </div>
+    <p class="section-desc">同じ3階層の設定メニューを、左は「パンくずなし」、右は「パンくずあり」で操作してみてください。深い階層で「今どこ?」が分かるかどうかが、認知負荷の決定的な差になります。</p>
+
+    <div class="compare-grid">
+      <!-- BAD: 評価の淵 -->
+      <div class="demo-card">
+        <div class="demo-card-header bad">
+          <span>⚠</span>
+          <span>パンくずリストなし(評価の淵に陥りやすい)</span>
+        </div>
+        <div class="demo-card-body">
+          <div class="phone-frame">
+            <div class="phone-title" id="bad-title">設定 <span class="depth-indicator" id="bad-depth">トップ</span></div>
+            <button class="back-btn" id="bad-back" style="display:none">← 戻る</button>
+            <ul class="menu-list" id="bad-menu"></ul>
+          </div>
+          <div class="hint">
+            <strong>気づきポイント:</strong> 3階層目に到達した時、自分が今どこにいたか即座に思い出せますか?
+          </div>
+        </div>
+      </div>
+
+      <!-- GOOD: パンくずあり -->
+      <div class="demo-card">
+        <div class="demo-card-header good">
+          <span>✓</span>
+          <span>パンくずリストあり(現在地が常に明示)</span>
+        </div>
+        <div class="demo-card-body">
+          <div class="phone-frame">
+            <div class="phone-title">設定</div>
+            <nav class="breadcrumb" id="good-breadcrumb" style="margin-bottom:10px">
+              <a data-depth="0">🏠 ホーム</a>
+            </nav>
+            <ul class="menu-list" id="good-menu"></ul>
+          </div>
+          <div class="hint">
+            <strong>気づきポイント:</strong> 現在地が常に視覚化されているため、ワーキングメモリの負荷が軽減されます。
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== DEMO 2: ヘッダ格納タイプ ========== -->
+  <section class="section" id="demo2">
+    <div class="section-header">
+      <div class="section-number">02</div>
+      <div class="section-title">ヘッダ格納のタイプA/B</div>
+    </div>
+    <p class="section-desc">下のエリアをスクロールすると、ヘッダの挙動が切り替わります。「タイプA: 完全非表示」と「タイプB: 縮小版固定」を体験してみてください。コンテンツ領域と現在地把握のトレードオフを感じられます。</p>
+
+    <div class="header-demo-toggle">
+      <button class="toggle-btn active" data-htype="A">タイプA: 完全非表示</button>
+      <button class="toggle-btn" data-htype="B">タイプB: 縮小版固定</button>
+    </div>
+
+    <div class="scroll-demo" id="scrollDemo">
+      <div class="scroll-demo-header" id="scrollHeader">
+        <span style="font-weight:700">🔍 検索・通知・メニュー(展開時)</span>
+      </div>
+      <div class="scroll-demo-content">
+        <p style="color:var(--text-muted); font-size:0.85rem;">↓ このエリアを下にスクロールしてください</p>
+        <div class="block"><strong>記事 1</strong><br><span style="color:var(--text-muted); font-size:0.85rem">ナビゲーションは目的達成のための手段であり、それ自体が目的ではない。理想は、ユーザーがナビゲーションの存在を意識せずコンテンツに集中できる状態。</span></div>
+        <div class="block"><strong>記事 2</strong><br><span style="color:var(--text-muted); font-size:0.85rem">画面の有効領域を最大化するために、不要なときはヘッダを格納する設計が広く採用されている。</span></div>
+        <div class="block"><strong>記事 3</strong><br><span style="color:var(--text-muted); font-size:0.85rem">タイプAは画面占有を最小化できる反面、ナビゲーションに戻るまでの距離が遠くなる。</span></div>
+        <div class="block"><strong>記事 4</strong><br><span style="color:var(--text-muted); font-size:0.85rem">タイプBは縮小版を残すことで、現在地把握と画面領域確保のバランスを取る。</span></div>
+        <div class="block"><strong>記事 5</strong><br><span style="color:var(--text-muted); font-size:0.85rem">ヤフオク(iOS)は中項目を残して縮小する代表例。</span></div>
+        <div class="block"><strong>記事 6</strong><br><span style="color:var(--text-muted); font-size:0.85rem">↑ 逆スクロール(上方向)するとヘッダが再展開されます。</span></div>
+      </div>
+    </div>
+    <div class="hint">
+      <strong>観察してみよう:</strong> タイプAは「コンテンツへの集中」、タイプBは「常時アクセス可能」を優先しています。自分の使うアプリはどちらに近いですか?
+    </div>
+  </section>
+
+  <!-- ========== DEMO 3: カラムレイアウト ========== -->
+  <section class="section" id="demo3">
+    <div class="section-header">
+      <div class="section-number">03</div>
+      <div class="section-title">1/2/3カラムレイアウトの切り替え</div>
+    </div>
+    <p class="section-desc">同じコンテンツを1/2/3カラムで表示します。情報量・画面サイズ・ユーザー目的との関係を可視化します。スマホサイズ(画面幅640px以下)では自動的に1カラムに折りたたまれます。</p>
+
+    <div class="column-switcher">
+      <button class="toggle-btn active" data-cols="1">1カラム</button>
+      <button class="toggle-btn" data-cols="2">2カラム</button>
+      <button class="toggle-btn" data-cols="3">3カラム</button>
+    </div>
+
+    <div class="column-demo">
+      <div class="col-row cols-1" id="colRow">
+        <!-- JSで切り替え -->
+      </div>
+    </div>
+    <div class="hint">
+      <strong>判断のヒント:</strong> モバイル → 1カラム / PC + サイドナビ → 2カラム / 大規模情報サイト → 3カラム
+    </div>
+  </section>
+
+  <!-- ========== DEMO 4: 文脈維持(オーバーレイ・インレイ・アコーディオン) ========== -->
+  <section class="section" id="demo4">
+    <div class="section-header">
+      <div class="section-number">04</div>
+      <div class="section-title">文脈維持: オーバーレイ・インレイ・アコーディオン</div>
+    </div>
+    <p class="section-desc">全画面遷移せずに副次的なタスクを実行する3つの手法を比較します。「評価の淵」を防ぐためにはどれが適切か、用途別に体験してください。</p>
+
+    <div class="ctx-grid">
+      <div class="ctx-card">
+        <h4>🔲 オーバーレイ</h4>
+        <p>画面の上に被さる一時的な割り込み。注意を強制的に向けさせたい時(確認・決済など)に有効。</p>
+        <button class="btn-primary" id="openOverlay">設定を開く</button>
+      </div>
+      <div class="ctx-card">
+        <h4>📥 インレイ</h4>
+        <p>ページ内に挿入されるパネル。ユーザーの意志で自由に開閉でき、強制的でない。</p>
+        <button class="btn-ghost" id="toggleInlay">詳細を表示</button>
+        <div class="inlay-panel" id="inlayPanel">
+          <div class="inlay-inner">
+            <h4>追加情報パネル</h4>
+            <p>このパネルは元のコンテンツを隠さず、開いたまま操作を続けられます。オーバーレイと違い、強制的な割り込みがありません。</p>
+          </div>
+        </div>
+      </div>
+      <div class="ctx-card" style="text-align:left">
+        <h4 style="text-align:center">🪗 アコーディオン</h4>
+        <p style="text-align:center">展開可能セクション。多数のFAQや密集メニューを省スペースで表示できる。</p>
+        <div class="accordion">
+          <div class="acc-item">
+            <button class="acc-trigger">配送について <span class="acc-icon">▾</span></button>
+            <div class="acc-content"><div class="acc-inner">通常ご注文から2〜3営業日で発送します。お届け先や時期により前後する場合があります。</div></div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-trigger">返品・交換 <span class="acc-icon">▾</span></button>
+            <div class="acc-content"><div class="acc-inner">商品到着後7日以内であれば、未使用品に限り返品を承ります。</div></div>
+          </div>
+          <div class="acc-item">
+            <button class="acc-trigger">お支払い方法 <span class="acc-icon">▾</span></button>
+            <div class="acc-content"><div class="acc-inner">クレジットカード、銀行振込、代引き、各種QR決済に対応しています。</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== DEMO 5: スクロール vs ページング vs カルーセル ========== -->
+  <section class="section" id="demo5">
+    <div class="section-header">
+      <div class="section-number">05</div>
+      <div class="section-title">スクロール vs ページング vs カルーセル</div>
+    </div>
+    <p class="section-desc">同じ12件のコンテンツを3つの表示方法で切り替えます。「連続的にスキャンしたい」「位置を把握したい」「視覚的に少数を選びたい」で、最適解は変わります。</p>
+
+    <div class="display-switcher">
+      <button class="toggle-btn active" data-mode="scroll">無限スクロール</button>
+      <button class="toggle-btn" data-mode="paging">ページング</button>
+      <button class="toggle-btn" data-mode="carousel">カルーセル</button>
+    </div>
+
+    <div class="display-area" id="displayArea">
+      <!-- JSで切り替え -->
+    </div>
+    <div class="hint">
+      <strong>使い分けの軸:</strong> SNSフィードや検索結果のスキャン → スクロール / 検索結果一覧で「何ページ目」を意識したい → ページング / 画像中心の少数候補 → カルーセル
+    </div>
+  </section>
+
+  <!-- ========== Summary ========== -->
+  <section class="section" id="summary">
+    <div class="section-header">
+      <div class="section-number" style="background:var(--accent)">★</div>
+      <div class="section-title">体験のまとめ</div>
+    </div>
+    <p class="section-desc">これら全ての設計は、ユーザーの<strong>認知負荷を軽減し、インタラクションコストを最小化する</strong>という同じ目的を持っています。「現在地を見失わせない」「文脈を保持する」「目的に応じた表示方法を選ぶ」が共通原則です。</p>
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-top:20px">
+      <div style="padding:16px; background:#eff6ff; border-radius:10px; border-left:3px solid var(--primary)">
+        <strong style="color:var(--primary)">予測可能性</strong><br>
+        <span style="font-size:0.85rem; color:var(--text-muted)">驚きのない安定した操作感</span>
+      </div>
+      <div style="padding:16px; background:#f0fdf4; border-radius:10px; border-left:3px solid var(--success)">
+        <strong style="color:var(--success)">一貫性</strong><br>
+        <span style="font-size:0.85rem; color:var(--text-muted)">同じ操作で同じ結果</span>
+      </div>
+      <div style="padding:16px; background:#fef3c7; border-radius:10px; border-left:3px solid var(--accent-warm)">
+        <strong style="color:#92400e">低労力</strong><br>
+        <span style="font-size:0.85rem; color:var(--text-muted)">最小手数で目的達成</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ========== FOOTER (サイトマップ含む) ========== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <h5>HCI Lab</h5>
+      <p>ヒューマンコンピュータインタラクション第12回「ソフトウェアインタフェース ナビゲーションとレイアウト」の学習用デモサイトです。</p>
+    </div>
+    <div class="footer-col">
+      <h5>体験コンテンツ</h5>
+      <ul>
+        <li><a href="#demo1">評価の淵</a></li>
+        <li><a href="#demo2">ヘッダ格納</a></li>
+        <li><a href="#demo3">カラム</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>関連項目</h5>
+      <ul>
+        <li><a href="#demo4">オーバーレイ</a></li>
+        <li><a href="#demo5">スクロール</a></li>
+        <li><a href="#summary">まとめ</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>サポート</h5>
+      <ul>
+        <li><a href="#">お問い合わせ</a></li>
+        <li><a href="#">日本語 / English</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    © Shunan University · Faculty of Information Science · HCI Course 2026
+  </div>
+</footer>
+
+<!-- ========== OVERLAY ========== -->
+<div class="overlay-backdrop" id="overlayBackdrop">
+  <div class="overlay-panel">
+    <h3>📌 通知設定</h3>
+    <p>この画面は背景に元のページが残っているため、閉じれば元の処理にすぐ復帰できます。ナビゲーションの階層を失わず、一時的なタスクを実行できる典型例です。</p>
+    <div class="overlay-actions">
+      <button class="btn-ghost" id="cancelOverlay">キャンセル</button>
+      <button class="btn-primary" id="confirmOverlay">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">保存しました</div>
+
+<script>
+  /* ============================================================
+     1. Header collapse on scroll (sticky header behaviour)
+  ============================================================ */
+  const siteHeader = document.getElementById('siteHeader');
+  let lastScroll = 0;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    if (y > 80) siteHeader.classList.add('collapsed');
+    else siteHeader.classList.remove('collapsed');
+    lastScroll = y;
+  });
+
+  /* ============================================================
+     2. Demo 1: 評価の淵 vs パンくずリスト
+  ============================================================ */
+  const menuData = {
+    root: {
+      title: '設定', depth: 'トップ',
+      items: ['プライバシー', '通知', '画面表示', 'アクセシビリティ']
+    },
+    'プライバシー': {
+      title: 'プライバシー', depth: '第1階層',
+      items: ['位置情報サービス', 'カメラ', 'マイク', '連絡先']
+    },
+    '位置情報サービス': {
+      title: '位置情報', depth: '第2階層',
+      items: ['システムサービス', '正確な位置情報', 'アプリ別設定']
+    },
+    'システムサービス': {
+      title: 'システムサービス', depth: '第3階層 ← 評価の淵!',
+      items: ['なるほど、ここに到達した。でも自分はどこから来た?']
+    }
+  };
+
+  // ---- BAD version (no breadcrumb) ----
+  const badPath = ['root'];
+  function renderBad() {
+    const current = menuData[badPath[badPath.length - 1]];
+    document.getElementById('bad-title').innerHTML =
+      current.title + ' <span class="depth-indicator">' + current.depth + '</span>';
+    document.getElementById('bad-back').style.display = badPath.length > 1 ? 'inline-block' : 'none';
+    const menu = document.getElementById('bad-menu');
+    menu.innerHTML = '';
+    current.items.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'menu-item';
+      li.innerHTML = `<span>${item}</span><span class="chev">›</span>`;
+      if (menuData[item]) {
+        li.addEventListener('click', () => { badPath.push(item); renderBad(); });
+      } else {
+        li.style.cursor = 'default';
+        li.style.opacity = '0.7';
+      }
+      menu.appendChild(li);
+    });
+  }
+  document.getElementById('bad-back').addEventListener('click', () => {
+    badPath.pop();
+    renderBad();
+  });
+  renderBad();
+
+  // ---- GOOD version (with breadcrumb) ----
+  const goodPath = ['root'];
+  function renderGood() {
+    const current = menuData[goodPath[goodPath.length - 1]];
+
+    // Breadcrumb
+    const crumb = document.getElementById('good-breadcrumb');
+    crumb.innerHTML = '';
+    goodPath.forEach((key, idx) => {
+      const isLast = idx === goodPath.length - 1;
+      const label = key === 'root' ? '🏠 設定' : menuData[key].title;
+      if (isLast) {
+        const span = document.createElement('span');
+        span.className = 'current';
+        span.textContent = label;
+        crumb.appendChild(span);
+      } else {
+        const a = document.createElement('a');
+        a.textContent = label;
+        a.addEventListener('click', () => {
+          goodPath.splice(idx + 1);
+          renderGood();
+        });
+        crumb.appendChild(a);
+        const sep = document.createElement('span');
+        sep.className = 'sep';
+        sep.textContent = '›';
+        crumb.appendChild(sep);
+      }
+    });
+
+    // Menu items
+    const menu = document.getElementById('good-menu');
+    menu.innerHTML = '';
+    current.items.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'menu-item';
+      li.innerHTML = `<span>${item}</span><span class="chev">›</span>`;
+      if (menuData[item]) {
+        li.addEventListener('click', () => { goodPath.push(item); renderGood(); });
+      } else {
+        li.style.cursor = 'default';
+        li.style.opacity = '0.7';
+      }
+      menu.appendChild(li);
+    });
+  }
+  renderGood();
+
+  /* ============================================================
+     3. Demo 2: ヘッダ格納タイプ
+  ============================================================ */
+  let headerType = 'A';
+  const scrollDemo = document.getElementById('scrollDemo');
+  const scrollHeader = document.getElementById('scrollHeader');
+  let scrollDemoLastY = 0;
+
+  document.querySelectorAll('[data-htype]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-htype]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      headerType = btn.dataset.htype;
+      scrollHeader.classList.remove('hidden', 'collapsed');
+    });
+  });
+
+  scrollDemo.addEventListener('scroll', () => {
+    const y = scrollDemo.scrollTop;
+    const goingDown = y > scrollDemoLastY;
+
+    if (headerType === 'A') {
+      // 完全非表示: down で非表示, up で再表示
+      if (goingDown && y > 40) scrollHeader.classList.add('hidden');
+      else if (!goingDown) scrollHeader.classList.remove('hidden');
+      scrollHeader.classList.remove('collapsed');
+    } else {
+      // 縮小版固定: down で縮小, up で展開
+      if (goingDown && y > 40) scrollHeader.classList.add('collapsed');
+      else if (!goingDown) scrollHeader.classList.remove('collapsed');
+      scrollHeader.classList.remove('hidden');
+    }
+    scrollDemoLastY = y;
+  });
+
+  /* ============================================================
+     4. Demo 3: カラム切り替え
+  ============================================================ */
+  function renderColumns(cols) {
+    const row = document.getElementById('colRow');
+    row.className = 'col-row cols-' + cols;
+    let html = '';
+    if (cols == 1) {
+      html = `
+        <div class="col-block col-main">
+          <span class="col-label">📱 1カラム · モバイル向け</span>
+          <div class="skeleton-line tall"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+        </div>`;
+    } else if (cols == 2) {
+      html = `
+        <div class="col-block col-side">
+          <span class="col-label">⬅ サイド · ローカルナビ</span>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line"></div>
+        </div>
+        <div class="col-block col-main">
+          <span class="col-label">📄 メインコンテンツ</span>
+          <div class="skeleton-line tall"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line"></div>
+        </div>`;
+    } else {
+      html = `
+        <div class="col-block col-side">
+          <span class="col-label">⬅ 構造・フィルタ</span>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+          <div class="skeleton-line"></div>
+        </div>
+        <div class="col-block col-main">
+          <span class="col-label">📄 メインコンテンツ</span>
+          <div class="skeleton-line tall"></div>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+        <div class="col-block col-side">
+          <span class="col-label">➡ 補助情報・広告</span>
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+        </div>`;
+    }
+    row.innerHTML = html;
+  }
+  renderColumns(1);
+  document.querySelectorAll('[data-cols]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-cols]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderColumns(btn.dataset.cols);
+    });
+  });
+
+  /* ============================================================
+     5. Demo 4: Overlay
+  ============================================================ */
+  const overlay = document.getElementById('overlayBackdrop');
+  const toast = document.getElementById('toast');
+  document.getElementById('openOverlay').addEventListener('click', () => overlay.classList.add('show'));
+  document.getElementById('cancelOverlay').addEventListener('click', () => overlay.classList.remove('show'));
+  document.getElementById('confirmOverlay').addEventListener('click', () => {
+    overlay.classList.remove('show');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+  });
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+
+  // Inlay
+  document.getElementById('toggleInlay').addEventListener('click', (e) => {
+    const panel = document.getElementById('inlayPanel');
+    panel.classList.toggle('open');
+    e.target.textContent = panel.classList.contains('open') ? '詳細を閉じる' : '詳細を表示';
+  });
+
+  // Accordion
+  document.querySelectorAll('.acc-trigger').forEach(t => {
+    t.addEventListener('click', () => {
+      const content = t.nextElementSibling;
+      t.classList.toggle('open');
+      content.classList.toggle('open');
+    });
+  });
+
+  /* ============================================================
+     6. Demo 5: スクロール vs ページング vs カルーセル
+  ============================================================ */
+  const items = Array.from({length: 12}, (_, i) => ({
+    id: i + 1,
+    title: `投稿アイテム #${i + 1}`,
+    meta: `カテゴリ ${String.fromCharCode(65 + (i % 4))} · ${(i + 1) * 2}分前`
+  }));
+  let displayMode = 'scroll';
+  let currentPage = 1;
+  const pageSize = 4;
+
+  function renderItems() {
+    const area = document.getElementById('displayArea');
+    if (displayMode === 'scroll') {
+      area.innerHTML = '<div class="scroll-list">' +
+        items.map(item => `
+          <div class="item-card">
+            <div class="item-thumb">${item.id}</div>
+            <div class="item-info">
+              <div class="item-title">${item.title}</div>
+              <div class="item-meta">${item.meta}</div>
+            </div>
+          </div>`).join('') +
+        '</div>' +
+        '<div class="page-info">↑ 全12件を連続スクロール表示</div>';
+    } else if (displayMode === 'paging') {
+      const start = (currentPage - 1) * pageSize;
+      const slice = items.slice(start, start + pageSize);
+      const totalPages = Math.ceil(items.length / pageSize);
+      let pageBtns = '';
+      for (let i = 1; i <= totalPages; i++) {
+        pageBtns += `<button class="page-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+      }
+      area.innerHTML = slice.map(item => `
+        <div class="item-card">
+          <div class="item-thumb">${item.id}</div>
+          <div class="item-info">
+            <div class="item-title">${item.title}</div>
+            <div class="item-meta">${item.meta}</div>
+          </div>
+        </div>`).join('') +
+        `<div class="pagination">${pageBtns}</div>` +
+        `<div class="page-info">${start + 1} – ${start + slice.length} / 全 ${items.length} 件</div>`;
+
+      area.querySelectorAll('.page-btn').forEach(b => {
+        b.addEventListener('click', () => {
+          currentPage = parseInt(b.dataset.page);
+          renderItems();
+        });
+      });
+    } else if (displayMode === 'carousel') {
+      area.innerHTML = '<div class="carousel">' +
+        items.slice(0, 6).map(item => `
+          <div class="carousel-card">
+            <div>
+              <span class="num">${String(item.id).padStart(2, '0')}</span>
+              <h4>${item.title}</h4>
+            </div>
+            <div style="font-size:0.78rem; opacity:0.85">${item.meta}</div>
+          </div>`).join('') +
+        '</div>' +
+        '<div class="carousel-dots">' +
+        Array.from({length: 6}, (_, i) => `<div class="dot ${i === 0 ? 'active' : ''}"></div>`).join('') +
+        '</div>' +
+        '<div class="page-info" style="margin-top:8px">← 横スクロールで6件を閲覧</div>';
+    }
+  }
+  renderItems();
+  document.querySelectorAll('[data-mode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      displayMode = btn.dataset.mode;
+      currentPage = 1;
+      renderItems();
+    });
+  });
+
+  /* ============================================================
+     7. Header nav active state on scroll
+  ============================================================ */
+  const navLinks = document.querySelectorAll('.header-nav a');
+  const sections = ['hero', 'demo1', 'demo3'].map(id => document.getElementById(id));
+  window.addEventListener('scroll', () => {
+    let active = 0;
+    sections.forEach((sec, idx) => {
+      if (sec && sec.getBoundingClientRect().top < 120) active = idx;
+    });
+    navLinks.forEach((a, i) => a.classList.toggle('active', i === active));
+  });
+</script>
+
+</body>
+</html>
